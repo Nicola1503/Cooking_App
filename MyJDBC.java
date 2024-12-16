@@ -7,6 +7,11 @@ import java.sql.*;
 //JDBC - Java Database Connectivity
 //this class will be our gateway in accessing our MySQL database
 public class MyJDBC {
+    
+        final SecureRandom secureRandom = new SecureRandom();
+
+        int accountID = secureRandom.nextInt();
+    
     // register new user to the database
     //true - register success
     //false - register failure
@@ -15,6 +20,7 @@ public class MyJDBC {
         try {
             //1. check if the username already exists in the database
             if (!checkUser(username)) {
+                if(!checkUser(accountID)){
                 // connect to the database
                 Connection connection = DriverManager.getConnection(CommonConstants.DB_URL, CommonConstants.DB_USERNAME,
                         CommonConstants.DB_PASSWORD);
@@ -31,6 +37,7 @@ public class MyJDBC {
                 // update db with new user
                 insertUser.executeUpdate();
                 return true;
+            }
             }
         } catch (SQLException e){
             e.printStackTrace();
@@ -63,6 +70,29 @@ public class MyJDBC {
                 return false;
             }
         } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return true;
+    }
+//we check if SQL already has this ID
+    public static boolean usedIDs(int accountID){
+        try {
+            Connection connection = DriverManager.getConnection(CommonConstants.DB_URL, CommonConstants.DB_USERNAME,
+                    CommonConstants.DB_PASSWORD);
+
+            PreparedStatement checkUserExists = connection.prepareStatement(
+                    " SELECT * FROM " + CommonConstants.DB_USERS_TABLE_NAME +
+                            " WHERE accountID = ? "
+            );
+            checkUserExists.setString(1, String.valueOf(accountID));
+
+            ResultSet resultSet= checkUserExists.executeQuery();
+
+            if(!resultSet.isBeforeFirst()){
+                return false;
+            }
+
+        }catch (SQLException e){
             e.printStackTrace();
         }
         return true;
